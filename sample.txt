@@ -1,0 +1,2 @@
+id	fq1	fq2
+demo	demo/test_data_R1.fastq.gz	demo/test_data_R2.fastq.gz

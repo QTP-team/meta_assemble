@@ -1,0 +1,43 @@
+params:
+    ### step1 assembly
+    fastp:
+      min_len : 30 # Recommended value >= 30
+    #rmhost
+    rmhost:
+      bowtie2_index : "/ldfssz1/ST_META/share/User/tianliu/database/bowtie2_index/hg38/hg38"
+      threads: 8
+    #megahit
+    megahit:
+      threads: 16
+      min_contigs_len: 200
+    #binning
+    metabat2:
+      threads: 16
+      minContig: 1500 #should be >=1500
+    #quality
+    checkm:
+      threads: 8
+    pick:
+      HQ: "90,5,-1"
+      MQ: "50,10,-1"
+
+assay:
+    trimming: "1.assay/01.trimming"
+    rmhost: "1.assay/02.rmhost"
+    megahit: "1.assay/03.assembly/megahit"
+    metabat2: "1.assay/04.binning/metabat2"
+    checkm: "1.assay/05.quality/checkm"
+    picked: "1.assay/05.quality/picked"
+
+results:
+    assembly: "2.result/step1_assembly"
+
+logs:
+    ### step1 assembly
+    trimming: "1.assay/logs/01.trimming"
+    rmhost: "1.assay/logs/02.rmhost"
+    megahit: "1.assay/logs/03.assembly/megahit"
+    metabat2: "1.assay/logs/04.binning/metabat2"
+    checkm: "1.assay/logs/05.MAG_quality/checkm"
+    picked: "1.assay/logs/05.MAG_quality/picked"
+
