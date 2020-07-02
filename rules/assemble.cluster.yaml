@@ -26,19 +26,19 @@ seqkit_stat:
   error: "1.assay/cluster_logs/{rule}.{wildcards}.e"
 
 megahit:
-  mem: "50G"
-  cores: 8
+  mem: "60G"
+  cores: 24
   output: "1.assay/cluster_logs/{rule}.{wildcards}.o"
   error: "1.assay/cluster_logs/{rule}.{wildcards}.e"
 
 metabat2: 
-  mem: "16G"
+  mem: "24G"
   cores: 8
   output: "1.assay/cluster_logs/{rule}.{wildcards}.o"
   error: "1.assay/cluster_logs/{rule}.{wildcards}.e"
 
 checkm:
-  mem: "60G"
-  cores: 4
+  mem: "30G"
+  cores: 8
   output: "1.assay/cluster_logs/{rule}.{wildcards}.o"
   error: "1.assay/cluster_logs/{rule}.{wildcards}.e"

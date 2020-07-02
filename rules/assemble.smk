@@ -99,8 +99,10 @@ rule metabat2:
         depth = protected(os.path.join(config["assay"]["metabat2"], "{sample}/{sample}.depth.txt")),
         bins_dir = directory(os.path.join(config["assay"]["metabat2"], "{sample}/{sample}_binning")),
     params:
+        megahit_dir = os.path.join(config["assay"]["megahit"], "{sample}.megahit_out"),
         index_dir = directory(os.path.join(config["assay"]["megahit"], "{sample}.megahit_out/{sample}_index")),
-        minContig = config["params"]["metabat2"]["minContig"]
+        minContig = config["params"]["metabat2"]["minContig"],
+        megahit_log = os.path.join(config["assay"]["megahit"], "{sample}.megahit_out/log")
     log:
         index_log = os.path.join(config["logs"]["metabat2"], "index/megahit/{sample}.index.log"),
         map_log = os.path.join(config["logs"]["metabat2"], "map2scaftigs/megahit/{sample}.map2scaftigs.log"),
@@ -110,8 +112,25 @@ rule metabat2:
     priority: 20
     shell:
         '''
-        if [ ! -d {params.index_dir} ];then mkdir {params.index_dir};fi
-        bowtie2-build --threads {threads} {input.scaftigs} {params.index_dir}/g_index 1> {log.index_log} 2>&1
+        ### prepare
+        if [ ! -d {params.index_dir} ]
+        then 
+            mkdir {params.index_dir}
+        else
+            rm {params.index_dir}/*
+        fi
+        rm {params.megahit_dir}/*.bam
+
+        ### fixed large-index bug
+        config_size=`tail -n 2 {params.megahit_log} | head -n 1 | grep -Po '(?<=total )\d+(?= bp,)'`
+        limit_size=40000000000
+        if [ $config_size -gt $limit_size ]
+        then
+            bowtie2-build --large-index --threads {threads} {input.scaftigs} {params.index_dir}/g_index 1> {log.index_log} 2>&1
+        else
+            bowtie2-build --threads {threads} {input.scaftigs} {params.index_dir}/g_index 1> {log.index_log} 2>&1
+        fi
+
         bowtie2 -p {threads} -x {params.index_dir}/g_index -1 {input.r1} -2 {input.r2} 2> {log.map_log} | samtools sort -@ {threads} -o {output.bam} -
         jgi_summarize_bam_contig_depths --outputDepth {output.depth} {output.bam}
         metabat2 -i {input.scaftigs} -a {output.depth} -o {output.bins_dir}/bin -m {params.minContig} -t {threads} > {log.bin_log}
