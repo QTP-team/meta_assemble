@@ -25,7 +25,8 @@ rule all:
         os.path.join(config["results"]["assembly"], "filter_summary.txt"),
         os.path.join(config["results"]["assembly"], "All_bins_stat.txt"),
         os.path.join(config["results"]["assembly"], "MAGs_per_sample.txt"),
-        os.path.join(config["results"]["assembly"], "picked_MAGs_quality.txt")
+        os.path.join(config["results"]["assembly"], "picked_MAGs_quality.txt"),
+        os.path.join(config["results"]["assembly"], "map2scaftigs_summary.txt")
 
 ### step1 : trimming & remove host reads
 ### To reduce disk storage usage, merge trimming and remove host together.
@@ -52,7 +53,7 @@ rule filter:
     run:
         shell(
         '''
-        fastp -i {input.r1} -I {input.r2} -o {output.trim_r1} -O {output.trim_r2} -w 6 --length_required {params.min_len} --disable_adapter_trimming -j {output.json} -h {output.html} 2> {log.fastp_log}
+        fastp -i {input.r1} -I {input.r2} -o {output.trim_r1} -O {output.trim_r2} -w {threads} --length_required {params.min_len} --disable_adapter_trimming -j {output.json} -h {output.html} 2> {log.fastp_log}
 
         bowtie2 --very-sensitive -p {threads} -x {params.index} -1 {output.trim_r1} -2 {output.trim_r2} 2> {log.bowtie2_log} | samtools fastq -N -c 5 -f 12 -F 256 -1 {output.rmhost_r1} -2 {output.rmhost_r2} -
         ''')
@@ -123,7 +124,7 @@ rule metabat2:
 
         ### fixed large-index bug
         config_size=`tail -n 2 {params.megahit_log} | head -n 1 | grep -Po '(?<=total )\d+(?= bp,)'`
-        limit_size=40000000000
+        limit_size=4000000000
         if [ $config_size -gt $limit_size ]
         then
             bowtie2-build --large-index --threads {threads} {input.scaftigs} {params.index_dir}/g_index 1> {log.index_log} 2>&1
@@ -159,6 +160,7 @@ rule checkm:
         '''
         mkdir -p {output}
         checkm lineage_wf -t {threads} -x fa {input} {output} 2> {log} | grep -v "INFO" > {output}/checkm_summary.txt
+        mv {output}/storage/bin_stats.analyze.tsv {output}
         rm -r {output}/bins {output}/storage
         '''
 
@@ -196,13 +198,16 @@ rule filter_summary:
 rule MAGs_summary:
     input:
         MAGs_stat = expand("{picked_log}/{sample}.picked.summary.txt", picked_log = config["assay"]["picked"], sample = _samples.index),
-        bins_stat = expand("{bin_dir}/{sample}/{sample}.MAGs.stat", bin_dir = config["assay"]["metabat2"], sample = _samples.index)
+        bins_stat = expand("{bin_dir}/{sample}/{sample}.MAGs.stat", bin_dir = config["assay"]["metabat2"], sample = _samples.index),
+        map2scaftigs = expand("{remap_dir}/map2scaftigs/megahit/{sample}.map2scaftigs.log", remap_dir = config["logs"]["metabat2"], sample = _samples.index)
     output:
         bins_stat = protected(os.path.join(config["results"]["assembly"], "All_bins_stat.txt")),
         MAGs_per_sample = protected(os.path.join(config["results"]["assembly"], "MAGs_per_sample.txt")),
-        MAGs_quality = protected(os.path.join(config["results"]["assembly"], "picked_MAGs_quality.txt"))
+        MAGs_quality = protected(os.path.join(config["results"]["assembly"], "picked_MAGs_quality.txt")),
+        map2scaftigs = protected(os.path.join(config["results"]["assembly"], "map2scaftigs_summary.txt"))
     shell:
         '''
         cat {input.bins_stat} > {output.bins_stat}
+        python rules/tools/merge_bowtie2_log.py {input.map2scaftigs} > {output.map2scaftigs}
         python rules/tools/MAGs_summary.py {input.MAGs_stat} -o {output.MAGs_per_sample} -O {output.MAGs_quality}
         '''
