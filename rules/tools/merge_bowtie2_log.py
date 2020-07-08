@@ -22,7 +22,7 @@ parser.add_argument(
 def merge(infile_lst):
     print("sample\treads\tPE_mapping_ratio\tmapping_ratio")
     for f in infile_lst:
-        sample_id = os.path.split(os.path.basename(f))[1]
+        sample_id = os.path.split(os.path.basename(f))[1].replace('.map2scaftigs.log','')
         with open(f) as f_i:
             item = f_i.readlines()
             reads = float(item[0].strip().split(" ")[0])*2
