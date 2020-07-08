@@ -114,17 +114,18 @@ rule metabat2:
     shell:
         '''
         ### prepare
-        if [ ! -d {params.index_dir} ]
+        if [ -d {params.index_dir} ]
         then 
-            mkdir {params.index_dir}
-        else
-            rm {params.index_dir}/*
+            rm -rf {params.index_dir}
         fi
-        rm {params.megahit_dir}/*.bam
+        find {params.megahit_dir} -name "*.bam" | xargs rm -f
 
+        mkdir {params.index_dir}
+        
         ### fixed large-index bug
         config_size=`tail -n 2 {params.megahit_log} | head -n 1 | grep -Po '(?<=total )\d+(?= bp,)'`
         limit_size=4000000000
+
         if [ $config_size -gt $limit_size ]
         then
             bowtie2-build --large-index --threads {threads} {input.scaftigs} {params.index_dir}/g_index 1> {log.index_log} 2>&1
