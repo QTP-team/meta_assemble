@@ -85,7 +85,7 @@ rule megahit:
         '''
         if [ -d {params.outdir} ];then rm -r {params.outdir};fi
         megahit -1 {input.r1} -2 {input.r2} -t {threads} --min-contig-len {params.min_c_len} -o {params.outdir} 2> {log}
-        pigz -p {threads} -c {params.outdir}/final.contigs.fa > {output}
+        pigz -p {threads} -c {params.outdir}/final.contigs.fa > {output} && rm {params.outdir}/final.contigs.fa
         rm -r {params.outdir}/intermediate_contigs
         '''
 
@@ -103,7 +103,8 @@ rule metabat2:
         megahit_dir = os.path.join(config["assay"]["megahit"], "{sample}.megahit_out"),
         index_dir = directory(os.path.join(config["assay"]["megahit"], "{sample}.megahit_out/{sample}_index")),
         minContig = config["params"]["metabat2"]["minContig"],
-        megahit_log = os.path.join(config["assay"]["megahit"], "{sample}.megahit_out/log")
+        megahit_log = os.path.join(config["assay"]["megahit"], "{sample}.megahit_out/log"),
+        bin_basename = os.path.join(config["assay"]["metabat2"], "{sample}/{sample}_binning/{sample}_bin")
     log:
         index_log = os.path.join(config["logs"]["metabat2"], "index/megahit/{sample}.index.log"),
         map_log = os.path.join(config["logs"]["metabat2"], "map2scaftigs/megahit/{sample}.map2scaftigs.log"),
@@ -135,34 +136,35 @@ rule metabat2:
 
         bowtie2 -p {threads} -x {params.index_dir}/g_index -1 {input.r1} -2 {input.r2} 2> {log.map_log} | samtools sort -@ {threads} -o {output.bam} -
         jgi_summarize_bam_contig_depths --outputDepth {output.depth} {output.bam}
-        metabat2 -i {input.scaftigs} -a {output.depth} -o {output.bins_dir}/bin -m {params.minContig} -t {threads} > {log.bin_log}
+        metabat2 -i {input.scaftigs} -a {output.depth} -o {params.bin_basename} -m {params.minContig} -t {threads} > {log.bin_log}
+
+        for bin in `ls {output.bins_dir}/*.fa`;do
+            id=`basename ${{bin}} .fa`
+            seqkit replace -p .+ -r "${{id}}_contig_{{nr}}" --nr-width 6 {output.bins_dir}/$bin -o {output.bins_dir}/${{bin}}.gz && rm {output.bins_dir}/${{bin}}
+        done
+
         rm -rf {params.index_dir}
         '''
-
-rule seqkit_bins:
-    input:
-        os.path.join(config["assay"]["metabat2"], "{sample}/{sample}_binning")
-    output:
-        os.path.join(config["assay"]["metabat2"], "{sample}/{sample}.MAGs.stat")
-    shell:
-        "seqkit stat -a {input}/*.fa > {output}"
 
 ### step4: MAG quality
 rule checkm:
     input:
         os.path.join(config["assay"]["metabat2"], "{sample}/{sample}_binning")
     output:
-        directory(os.path.join(config["assay"]["checkm"], "{sample}"))
+        checkm_dir = directory(os.path.join(config["assay"]["checkm"], "{sample}")),
+        bin_stat = protected(os.path.join(config["assay"]["metabat2"], "{sample}/{sample}.bins.stat.txt"))
     log:
         os.path.join(config["logs"]["checkm"], "{sample}.checkm.log")
+    params:
+        protected(os.path.join(config["assay"]["checkm"], "{sample}/{sample}.bins.stat.txt"))
     threads: 
         config["params"]["checkm"]["threads"]
     shell:
         '''
-        mkdir -p {output}
-        checkm lineage_wf -t {threads} -x fa {input} {output} 2> {log} | grep -v "INFO" > {output}/checkm_summary.txt
-        mv {output}/storage/bin_stats.analyze.tsv {output}
-        rm -r {output}/bins {output}/storage
+        mkdir -p {output.checkm_dir}
+        checkm lineage_wf -t {threads} -x fa {input} {output.checkm_dir} 2> {log} | grep -v "INFO" > {output.checkm_dir}/checkm_summary.txt
+        python rules/tools/bin_stat_format.py {output.checkm_dir}/storage/bin_stats.analyze.tsv > {output.bin_stat}
+        rm -r {output.checkm_dir}/bins {output.checkm_dir}/storage
         '''
 
 rule pick_MAGs:
@@ -199,7 +201,7 @@ rule filter_summary:
 rule MAGs_summary:
     input:
         MAGs_stat = expand("{picked_log}/{sample}.picked.summary.txt", picked_log = config["assay"]["picked"], sample = _samples.index),
-        bins_stat = expand("{bin_dir}/{sample}/{sample}.MAGs.stat", bin_dir = config["assay"]["metabat2"], sample = _samples.index),
+        bins_stat = expand("{bin_dir}/{sample}/{sample}.bins.stat.txt", bin_dir = config["assay"]["metabat2"], sample = _samples.index),
         map2scaftigs = expand("{remap_dir}/map2scaftigs/megahit/{sample}.map2scaftigs.log", remap_dir = config["logs"]["metabat2"], sample = _samples.index)
     output:
         bins_stat = protected(os.path.join(config["results"]["assembly"], "All_bins_stat.txt")),
@@ -208,7 +210,7 @@ rule MAGs_summary:
         map2scaftigs = protected(os.path.join(config["results"]["assembly"], "map2scaftigs_summary.txt"))
     shell:
         '''
-        cat {input.bins_stat} > {output.bins_stat}
+        cat {input.bins_stat} | awk '$NF == 1|| $2!="GC"' > {output.bins_stat}
         python rules/tools/merge_bowtie2_log.py {input.map2scaftigs} > {output.map2scaftigs}
         python rules/tools/MAGs_summary.py {input.MAGs_stat} -o {output.MAGs_per_sample} -O {output.MAGs_quality}
         '''

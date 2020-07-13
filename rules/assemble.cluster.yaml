@@ -13,12 +13,6 @@ filter:
   output: "1.assay/cluster_logs/{rule}.{wildcards}.o"
   error: "1.assay/cluster_logs/{rule}.{wildcards}.e"
 
-metaphlan3:
-  mem: "3G"
-  cores: 4
-  output: "1.assay/cluster_logs/{rule}.{wildcards}.o"
-  error: "1.assay/cluster_logs/{rule}.{wildcards}.e"
-
 seqkit_stat:
   mem: "0.1G"
   cores: 2
@@ -40,5 +34,23 @@ metabat2:
 checkm:
   mem: "30G"
   cores: 8
+  output: "1.assay/cluster_logs/{rule}.{wildcards}.o"
+  error: "1.assay/cluster_logs/{rule}.{wildcards}.e"
+
+pick_MAGs:
+  mem: "0.1G"
+  cores: 1
+  output: "1.assay/cluster_logs/{rule}.{wildcards}.o"
+  error: "1.assay/cluster_logs/{rule}.{wildcards}.e"
+
+filter_summary:
+  mem: "0.1G"
+  cores: 1
+  output: "1.assay/cluster_logs/{rule}.{wildcards}.o"
+  error: "1.assay/cluster_logs/{rule}.{wildcards}.e"
+
+MAGs_summary:
+  mem: "0.1G"
+  cores: 1
   output: "1.assay/cluster_logs/{rule}.{wildcards}.o"
   error: "1.assay/cluster_logs/{rule}.{wildcards}.e"
