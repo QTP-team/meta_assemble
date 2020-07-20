@@ -142,9 +142,9 @@ rule metabat2:
 
         for bin in `ls {output.bins_dir}/*.fa`;do
             id=`basename ${{bin}} .fa`
-            seqkit replace -p .+ -r "${{id}}_contig_{{nr}}" --nr-width 6 {output.bins_dir}/$bin -o {output.bins_dir}/${{bin}}.gz && rm {output.bins_dir}/${{bin}}
+            seqkit replace -p .+ -r "${{id}}_contig_{{nr}}" --nr-width 6 $bin -o ${{bin}}.gz && rm ${{bin}}
         done
-
+        cd {output.bins_dir} && gzip -d *.gz  ### checkm does't support .gz
         rm -rf {params.index_dir}
         '''
 
@@ -153,33 +153,24 @@ rule checkm:
     input:
         os.path.join(config["assay"]["metabat2"], "{sample}/{sample}_binning")
     output:
-        checkm_dir = directory(os.path.join(config["assay"]["checkm"], "{sample}")),
-        bin_stat = protected(os.path.join(config["assay"]["metabat2"], "{sample}/{sample}.bins.stat.txt"))
+        bin_stat = protected(os.path.join(config["assay"]["metabat2"], "{sample}/{sample}.bins.stat.txt")),
+        picked = protected(os.path.join(config["assay"]["picked"], "{sample}.picked.summary.txt"))
     log:
         os.path.join(config["logs"]["checkm"], "{sample}.checkm.log")
     params:
-        protected(os.path.join(config["assay"]["checkm"], "{sample}/{sample}.bins.stat.txt"))
+        checkm_dir = directory(os.path.join(config["assay"]["checkm"], "{sample}")),
+        high = config["params"]["pick"]["HQ"],
+        medium = config["params"]["pick"]["MQ"]
     threads:
         config["params"]["checkm"]["threads"]
     shell:
         '''
-        mkdir -p {output.checkm_dir}
-        checkm lineage_wf -t {threads} -x fa {input} {output.checkm_dir} 2> {log} | grep -v "INFO" > {output.checkm_dir}/checkm_summary.txt
-        python rules/tools/bin_stat_format.py {output.checkm_dir}/storage/bin_stats.analyze.tsv > {output.bin_stat}
-        rm -r {output.checkm_dir}/bins {output.checkm_dir}/storage
+        mkdir -p {params.checkm_dir}
+        checkm lineage_wf -t {threads} -x fa {input} {params.checkm_dir} 2> {log} | grep -v "INFO" > {params.checkm_dir}/checkm_summary.txt
+        python rules/tools/bin_stat_format.py {params.checkm_dir}/storage/bin_stats.analyze.tsv > {output.bin_stat}
+        python rules/tools/pick_MAGs.py --high {params.high} --medium {params.medium} {input} {params.checkm_dir}/checkm_summary.txt > {output.picked}
+        rm -r {params.checkm_dir}/bins {params.checkm_dir}/storage
         '''
-
-rule pick_MAGs:
-    input:
-        bins_dir = os.path.join(config["assay"]["metabat2"], "{sample}/{sample}_binning"),
-        checkm_dir = os.path.join(config["assay"]["checkm"], "{sample}")
-    output:
-        os.path.join(config["assay"]["picked"], "{sample}.picked.summary.txt")
-    params:
-        high = config["params"]["pick"]["HQ"],
-        medium = config["params"]["pick"]["MQ"]
-    shell:
-        "python rules/tools/pick_MAGs.py --high {params.high} --medium {params.medium} {input.bins_dir} {input.checkm_dir}/checkm_summary.txt > {output}"
 
 ### step5 summary
 rule filter_summary:
@@ -202,10 +193,10 @@ rule filter_summary:
 
 rule MAGs_summary:
     input:
-        megahit_stat = expand("{megahit_log}/{sample}.megahit.log", megahit_log = config["logs"]["megahit"], sample = _samples.index),
-        MAGs_stat = expand("{picked_log}/{sample}.picked.summary.txt", picked_log = config["assay"]["picked"], sample = _samples.index),
-        bins_stat = expand("{bin_dir}/{sample}/{sample}.bins.stat.txt", bin_dir = config["assay"]["metabat2"], sample = _samples.index),
         map2scaftigs = expand("{remap_dir}/map2scaftigs/megahit/{sample}.map2scaftigs.log", remap_dir = config["logs"]["metabat2"], sample = _samples.index),
+        megahit_stat = expand("{megahit_log}/{sample}.megahit.log", megahit_log = config["logs"]["megahit"], sample = _samples.index),
+        bins_stat = expand("{bin_dir}/{sample}/{sample}.bins.stat.txt", bin_dir = config["assay"]["metabat2"], sample = _samples.index),
+        MAGs_stat = expand("{picked_dir}/{sample}.picked.summary.txt", picked_dir = config["assay"]["picked"], sample = _samples.index)
 
     output:
         megahit_stat = protected(os.path.join(config["results"]["assembly"], "contigs_stat.txt")),

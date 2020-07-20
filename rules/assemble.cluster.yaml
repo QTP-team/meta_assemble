@@ -25,7 +25,7 @@ megahit:
   output: "1.assay/cluster_logs/{rule}.{wildcards}.o"
   error: "1.assay/cluster_logs/{rule}.{wildcards}.e"
 
-metabat2: 
+metabat2:
   mem: "24G"
   cores: 8
   output: "1.assay/cluster_logs/{rule}.{wildcards}.o"
@@ -34,12 +34,6 @@ metabat2:
 checkm:
   mem: "30G"
   cores: 8
-  output: "1.assay/cluster_logs/{rule}.{wildcards}.o"
-  error: "1.assay/cluster_logs/{rule}.{wildcards}.e"
-
-pick_MAGs:
-  mem: "0.1G"
-  cores: 1
   output: "1.assay/cluster_logs/{rule}.{wildcards}.o"
   error: "1.assay/cluster_logs/{rule}.{wildcards}.e"
 

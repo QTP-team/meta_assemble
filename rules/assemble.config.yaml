@@ -39,5 +39,3 @@ logs:
     megahit: "1.assay/logs/03.assembly/megahit"
     metabat2: "1.assay/logs/04.binning/metabat2"
     checkm: "1.assay/logs/05.MAG_quality/checkm"
-    picked: "1.assay/logs/05.MAG_quality/picked"
-

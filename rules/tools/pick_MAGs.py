@@ -55,7 +55,7 @@ def main():
         description = 'Select high quality(HQ) and medium quality(MQ) MAGs.\
         The three numbers after "--high/medium" are completeness, contamination, strain heterogeneity from checkm result(< 0 will be ignored).'
         )
-    parser.add_argument("MAGs_dir", help = "directory of MAG.fa")
+    parser.add_argument("MAGs_dir", help = "bins dir")
     parser.add_argument("checkm_res", help = "checkm_result.txt")
     parser.add_argument("--high", help = "standard of high quality MAGs", default="90,5,-1")
     parser.add_argument("--medium", help = "standard of medium quality MAGs", default="50,10,-1")
@@ -63,7 +63,7 @@ def main():
     args = parser.parse_args()
 
     HQ_set, MQ_set = filter_checkm(args.checkm_res, args.high, args.medium)
-    
+
     summary(args.MAGs_dir, HQ_set, MQ_set)
 
 main()
