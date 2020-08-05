@@ -48,3 +48,15 @@ MAGs_summary:
   cores: 1
   output: "1.assay/cluster_logs/{rule}.{wildcards}.o"
   error: "1.assay/cluster_logs/{rule}.{wildcards}.e"
+
+tar_sample:
+  mem: "0.1G"
+  cores: 1
+  output: "1.assay/cluster_logs/{rule}.{wildcards}.o"
+  error: "1.assay/cluster_logs/{rule}.{wildcards}.e"
+
+tar_log:
+    mem: "0.1G"
+    cores: 1
+    output: "1.assay/cluster_logs/{rule}.{wildcards}.o"
+    error: "1.assay/cluster_logs/{rule}.{wildcards}.e"

@@ -22,6 +22,7 @@ params:
       MQ: "50,10,-1"
 
 assay:
+    all: "1.assay"
     trimming: "1.assay/01.trimming"
     rmhost: "1.assay/02.rmhost"
     megahit: "1.assay/03.assembly/megahit"
@@ -33,7 +34,7 @@ results:
     assembly: "2.result/step1_assembly"
 
 logs:
-    ### step1 assembly
+    all: "1.assay/logs"
     trimming: "1.assay/logs/01.trimming"
     rmhost: "1.assay/logs/02.rmhost"
     megahit: "1.assay/logs/03.assembly/megahit"
