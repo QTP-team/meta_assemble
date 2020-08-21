@@ -31,11 +31,14 @@ rule tar_sample:
         binning_dir = os.path.join(config["assay"]["metabat2"], "{sample}"),
         quality_dir = os.path.join(config["assay"]["checkm"], "{sample}")
     output:
-        assembly_tar = protected(os.path.join(config["assay"]["megahit"], "{sample}.megahit_out.tar.gz")),
+        assembly_tar = protected(os.path.join(config["assay"]["megahit"], "{sample}.logs.tar.gz")),
         binning_tar = protected(os.path.join(config["assay"]["metabat2"], "{sample}.tar.gz")),
         quality_tar = protected(os.path.join(config["assay"]["checkm"], "{sample}.tar.gz"))
+    params:
+        config["assay"]["megahit"]
     shell:
         '''
+        mv {input.assembly_dir}/*megahit.contigs.fa.gz {params}
         tar -zcf {output.assembly_tar} {input.assembly_dir} && rm -rf {input.assembly_dir}
         tar -zcf {output.binning_tar} {input.binning_dir} && rm -rf {input.binning_dir}
         tar -zcf {output.quality_tar} {input.quality_dir} && rm -rf {input.quality_dir}

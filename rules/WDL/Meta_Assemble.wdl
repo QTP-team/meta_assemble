@@ -9,6 +9,7 @@
 ### 2020/05/13
 ### metagenomics assembly v1.0
 ### input: raw fastq
+### WDL PATH : /hwfssz5/ST_BIGDATA/USER/st_bigdata/test/Meta_Assemble_default_1.1.wdl
 ##############################################################
 version 1.0
 workflow meta_assembly_1 {
@@ -28,7 +29,6 @@ workflow meta_assembly_1 {
 
     String sample_ID=SampleID
     String work_dir=Outdir
-
     scatter(fq in Data){
         String sample_r1=fq[1]
         String sample_r2=fq[2]
@@ -48,7 +48,8 @@ workflow meta_assembly_1 {
             rmhost_r2 = filter.rmhost_r2,
             min_contigs_len = megahit_minContig_len,
             sample_ID = sample_ID,
-            work_dir = work_dir
+            work_dir = work_dir,
+            PID = bigCompute
             }
 
     call metabat2{
@@ -62,6 +63,15 @@ workflow meta_assembly_1 {
             }
 
     call checkm{
+        input:
+            bins_dir = metabat2.bins_dir,
+            HQ = HQ_MAGs,
+            MQ = MQ_MAGs,
+            sample_ID = sample_ID,
+            work_dir = work_dir,
+            PID=bigCompute
+            }
+    call checkmStat{
         input:
             bins_dir = metabat2.bins_dir,
             HQ = HQ_MAGs,
@@ -85,7 +95,7 @@ task filter {
         String log_trim_dir = "1.assay/logs/01.trimming"
         String rmhost_dir = "1.assay/02.rmhost"
         String log_rmhost_dir = "1.assay/logs/02.rmhost"
-        Int cpu = 8
+        Int cpu = 4
         Int mem = 4
     }
 
@@ -121,7 +131,7 @@ task filter {
         /ldfssz1/ST_META/share/User/tianliu/bioenv/conda/envs/meta_assemble_wdl/bin/seqkit stat ${work_dir}/${rmhost_dir}/${sample_ID}.rmhost.*.fq.gz -j ${cpu} > ${work_dir}/${log_rmhost_dir}/${sample_ID}.rmhost.reads.summary
     }
     runtime{
-        backend:"Local"
+        backend:"SGE"
         cpu:cpu
         memory:"${mem} GB"
     }
@@ -143,9 +153,9 @@ task megahit {
         String min_contigs_len
         String assemble_dir = "1.assay/03.assembly/megahit"
         String log_assemble = "1.assay/logs/03.assembly/megahit"
-        #String PID
-        Int cpu = 16
-        Int mem = 8
+        String PID
+        Int cpu = 36
+        Int mem = 50
     }
 
     command{
@@ -166,9 +176,10 @@ task megahit {
         rm -r ${work_dir}/${assemble_dir}/${sample_ID}.megahit_out/intermediate_contigs
     }
     runtime{
-        backend:"Local"
+        backend:"SGE"
         cpu:cpu
         memory:"${mem} GB"
+        sge_queue:PID
     }
     output {
         String contigs = "${work_dir}/${assemble_dir}/${sample_ID}.megahit_out/${sample_ID}.megahit.contigs.fa.gz"
@@ -246,7 +257,7 @@ task metabat2 {
         rm -rf ${work_dir}/${assemble_dir}/${sample_ID}.megahit_out/${sample_ID}_index
     }
     runtime{
-        backend:"Local"
+        backend:"SGE"
         cpu:cpu
         memory:"${mem} GB"
     }
@@ -268,7 +279,8 @@ task checkm {
         String sample_ID
         String work_dir
         Int cpu = 4
-        Int mem = 35
+        Int mem = 40
+        String PID
     }
 
     command{
@@ -281,7 +293,32 @@ task checkm {
         ${bins_dir} ${work_dir}/${quality_dir}/${sample_ID} \
         2> ${work_dir}/${log_checkm}/${sample_ID}.checkm.log | \
         grep -v "INFO" > ${work_dir}/${quality_dir}/${sample_ID}/checkm_summary.txt
-
+    }
+    runtime{
+        backend:"SGE"
+        cpu:cpu
+        memory:"${mem} GB"
+        sge_queue:PID
+    }
+    output {
+        String checkm_res = "${work_dir}/${quality_dir}/${sample_ID}/checkm_summary.txt"
+        File checkm_res1 = "${work_dir}/${quality_dir}/${sample_ID}/checkm_summary.txt"
+    }
+}
+task checkmStat {
+    input {
+        String bins_dir
+        String log_checkm = "1.assay/logs/05.MAG_quality/checkm"
+        String quality_dir = "1.assay/05.quality/checkm"
+        String binning_dir = "1.assay/04.binning/metabat2"
+        String HQ
+        String MQ
+        String sample_ID
+        String work_dir
+        Int cpu = 1
+        Int mem = 4
+    }
+    command{
         python /ldfssz1/ST_META/share/User/tianliu/pipline/stable/meta_assemble_v0.2/rules/tools/bin_stat_format.py ${work_dir}/${quality_dir}/${sample_ID}/storage/bin_stats.analyze.tsv > ${work_dir}/${binning_dir}/${sample_ID}/${sample_ID}.bins.stat.txt
 
         python /ldfssz1/ST_META/share/User/tianliu/pipline/stable/meta_assemble_v0.2/rules/tools/pick_MAGs.py --high ${HQ} --medium ${HQ} ${work_dir}/${binning_dir}/${sample_ID}/${sample_ID}_binning ${work_dir}/${quality_dir}/${sample_ID}/checkm_summary.txt > ${work_dir}/${quality_dir}/${sample_ID}/${sample_ID}.picked.summary.txt
@@ -289,12 +326,12 @@ task checkm {
         rm -r ${work_dir}/${quality_dir}/${sample_ID}/storage ${work_dir}/${quality_dir}/${sample_ID}/bins
     }
     runtime{
-        backend:"Local"
+        backend:"SGE"
         cpu:cpu
         memory:"${mem} GB"
     }
     output {
-        String checkm_res = "${work_dir}/${quality_dir}/${sample_ID}/checkm_summary.txt"
-        File checkm_res1 = "${work_dir}/${quality_dir}/${sample_ID}/checkm_summary.txt"
+        File checkmStat1 = "${work_dir}/${quality_dir}/${sample_ID}/${sample_ID}.picked.summary.txt"
+        File checkmStat2 = "${work_dir}/${binning_dir}/${sample_ID}/${sample_ID}.bins.stat.txt"
     }
 }
