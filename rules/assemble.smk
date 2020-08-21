@@ -98,7 +98,6 @@ rule metabat2:
         r2 = os.path.join(config["assay"]["rmhost"], "{sample}.rmhost.2.fq.gz"),
         scaftigs = os.path.join(config["assay"]["megahit"], "{sample}.megahit_out/{sample}.megahit.contigs.fa.gz")
     output:
-        bam = temp(os.path.join(config["assay"]["megahit"], "{sample}.megahit_out/{sample}.sorted.bam")),
         depth = protected(os.path.join(config["assay"]["metabat2"], "{sample}/{sample}.depth.txt")),
         bins_dir = directory(os.path.join(config["assay"]["metabat2"], "{sample}/{sample}_binning")),
     params:
@@ -136,8 +135,7 @@ rule metabat2:
             bowtie2-build --threads {threads} {input.scaftigs} {params.index_dir}/g_index 1> {log.index_log} 2>&1
         fi
 
-        bowtie2 -p {threads} -x {params.index_dir}/g_index -1 {input.r1} -2 {input.r2} 2> {log.map_log} | samtools sort -@ {threads} -o {output.bam} -
-        jgi_summarize_bam_contig_depths --outputDepth {output.depth} {output.bam}
+        bowtie2 -p {threads} -x {params.index_dir}/g_index -1 {input.r1} -2 {input.r2} 2> {log.map_log} | samtools sort -@ {threads} -O BAM - | jgi_summarize_bam_contig_depths --outputDepth {output.depth} -
         metabat2 -i {input.scaftigs} -a {output.depth} -o {params.bin_basename} -m {params.minContig} -t {threads} > {log.bin_log}
 
         for bin in `ls {output.bins_dir}/*.fa`;do
