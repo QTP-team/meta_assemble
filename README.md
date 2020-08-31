@@ -24,4 +24,4 @@ export PATH="$PATH:/ldfssz1/ST_META/share/User/tianliu/bioenv/conda/envs/meta_as
 
 使用方法见work.sh。
 
-WDL版本源码见rules/WDL文件夹，可以在自动化平台()调用。
+WDL版本源码见rules/WDL文件夹，可以在自动化平台(http://10.225.5.11:8080/Bioinfo/pages/automation/taskAdd.jsp)调用。
