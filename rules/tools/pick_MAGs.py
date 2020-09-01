@@ -29,27 +29,25 @@ def filter_checkm(checkm_file, high_standard, medium_standard):
 
         if cp > h_cp and ct < h_ct and sh < h_sh:
             HQ_set.add(record)
-        if cp >= m_cp and ct < m_ct and sh < m_sh:
+        if cp > m_cp and ct < m_ct and sh < m_sh:
             tmp_set.add(record)
 
     MQ_set = tmp_set - HQ_set
     print("#%s MAGs in %s, HQ_MAG.n = %s, MQ_MAG.n = %s" %(MAG_num, checkm_file, len(HQ_set), len(MQ_set)))
     return HQ_set, MQ_set
 
-def summary(MAGs_dir, HQ_set, MQ_set, bins_stat_dict,stat_title):
+def summary(MAGs_dir, HQ_set, MQ_set):
     wd = os.getcwd()
-    print("bin_id\tquality\tcompleteness\tcontamination\tstrain_heterogeneity\t%s" %(stat_title))
+    print("bin_id\tquality\tcompleteness\tcontamination\tstrain_heterogeneity")
     for record in HQ_set:
         MAG = record.split("\t")
         MAG_path = os.path.join(wd+"/"+MAGs_dir, MAG[0] + ".fa")
-        MAG_stat = bins_stat_dict.get(MAG[0], '')
-        print("%s\tHigh\t%s\t%s" %(MAG_path, "\t".join(MAG[1:]), MAG_stat))
+        print("%s\tHigh\t%s" %(MAG_path, "\t".join(MAG[1:])))
 
     for record in MQ_set:
         MAG = record.split("\t")
         MAG_path = os.path.join(wd+"/"+MAGs_dir, MAG[0] + ".fa")
-        MAG_stat = bins_stat_dict.get(MAG[0], '')
-        print("%s\tMedium\t%s\t%s" %(MAG_path, "\t".join(MAG[1:]), MAG_stat))
+        print("%s\tMedium\t%s" %(MAG_path, "\t".join(MAG[1:])))
 
 def main():
     parser = argparse.ArgumentParser(
@@ -61,19 +59,11 @@ def main():
     parser.add_argument("checkm_res", help = "checkm_result.txt")
     parser.add_argument("--high", help = "standard of high quality MAGs", default="90,5,-1")
     parser.add_argument("--medium", help = "standard of medium quality MAGs", default="50,10,-1")
-    parser.add_argument("--stat", help = "all bins stat")
 
     args = parser.parse_args()
 
     HQ_set, MQ_set = filter_checkm(args.checkm_res, args.high, args.medium)
 
-    bins_stat_dict = {}
-    stat_dset = open(args.stat).readlines()
-    stat_title = '\t'.join(stat_dset[0].strip().split("\t")[1:])
-    for i in stat_dset[1:]:
-        item = i.strip().split("\t")
-        bins_stat_dict[item[0]] = '\t'.join(item[1:])
-
-    summary(args.MAGs_dir, HQ_set, MQ_set, bins_stat_dict, stat_title)
+    summary(args.MAGs_dir, HQ_set, MQ_set)
 
 main()
