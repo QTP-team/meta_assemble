@@ -29,7 +29,7 @@ def filter_checkm(checkm_file, high_standard, medium_standard):
 
         if cp > h_cp and ct < h_ct and sh < h_sh:
             HQ_set.add(record)
-        if cp > m_cp and ct < m_ct and sh < m_sh:
+        if cp >= m_cp and ct < m_ct and sh < m_sh:
             tmp_set.add(record)
 
     MQ_set = tmp_set - HQ_set
