@@ -8,16 +8,20 @@ params:
       threads: 8
     #megahit
     megahit:
-      threads: 16
+      threads: 8
       min_contigs_len: 200
     #binning
     metabat2:
-      threads: 16
+      multi_samples: 10 # test data : 2, Recommended 10
+      threads: 4
       minContig: 1500 #should be >=1500
     #quality
     checkm:
       threads: 8
     pick:
+      # "completeness, contamination, strain_heterogeneity" from CheckM
+      # Default : MIMAG standard.
+      # <0 : no filter
       HQ: "90,5,-1"
       MQ: "50,10,-1"
 
@@ -31,7 +35,8 @@ assay:
     picked: "1.assay/05.quality/picked"
 
 results:
-    assembly: "2.result/step1_assembly"
+    assembly: "2.result/01.assembly"
+    binning_s1: "2.result/02.binning_s1"
 
 logs:
     all: "1.assay/logs"
