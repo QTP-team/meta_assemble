@@ -1,0 +1,12 @@
+{
+  "meta_assembly_1.Data" : [ [ "demo", "/ldfssz1/ST_META/share/User/tianliu/pipline/meta_assemble/demo/test_data_R1.fastq.gz", "/ldfssz1/ST_META/share/User/tianliu/pipline/meta_assemble/demo/test_data_R2.fastq.gz" ] ],
+  "meta_assembly_1.Outdir" : "/ldfssz1/ST_META/P19Z10200N0314_LXP/tianliu/Tibetan/0.bin/WDL",
+  "meta_assembly_1.ProjectID" : "P18Z10200N0127",
+  "meta_assembly_1.bowtie2_index_with_prefix" : "/hwfssz1/ST_META/P19Z10200N0314_LXP/00.database/Host_database/Pig/pig_bw2_index",
+  "meta_assembly_1.fastp_min_len" : "30",
+  "meta_assembly_1.megahit_minContig_len" : "200",
+  "meta_assembly_1.metabat2_minContig_len" : "1500",
+  "meta_assembly_1.HQ_MAGs" : "90,5,-1",
+  "meta_assembly_1.MQ_MAGs" : "50,10,-1",
+  "meta_assembly_1.SampleID" : "demo"
+}

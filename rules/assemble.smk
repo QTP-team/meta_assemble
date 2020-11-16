@@ -24,11 +24,11 @@ _samples = parse_samples("sample.txt")
 rule all:
     input:
         os.path.join(config["results"]["assembly"], "filter_summary.txt"),
-        os.path.join(config["results"]["assembly"], "All_bins_stat.txt"),
-        os.path.join(config["results"]["assembly"], "MAGs_per_sample.txt"),
         os.path.join(config["results"]["assembly"], "contigs_stat.txt"),
-        os.path.join(config["results"]["assembly"], "picked_MAGs_quality.txt"),
-        os.path.join(config["results"]["assembly"], "map2scaftigs_summary.txt")
+        os.path.join(config["results"]["binning_s1"], "All_bins_stat.txt"),
+        os.path.join(config["results"]["binning_s1"], "MAGs_per_sample.txt"),
+        os.path.join(config["results"]["binning_s1"], "picked_MAGs_quality.txt"),
+        os.path.join(config["results"]["binning_s1"], "map2scaftigs_summary.txt")
 
 ### step1 : trimming & remove host reads
 ### To reduce disk storage usage, merge trimming and remove host together.
@@ -98,7 +98,6 @@ rule metabat2:
         r2 = os.path.join(config["assay"]["rmhost"], "{sample}.rmhost.2.fq.gz"),
         scaftigs = os.path.join(config["assay"]["megahit"], "{sample}.megahit_out/{sample}.megahit.contigs.fa.gz")
     output:
-        bam = temp(os.path.join(config["assay"]["megahit"], "{sample}.megahit_out/{sample}.sorted.bam")),
         depth = protected(os.path.join(config["assay"]["metabat2"], "{sample}/{sample}.depth.txt")),
         bins_dir = directory(os.path.join(config["assay"]["metabat2"], "{sample}/{sample}_binning")),
     params:
@@ -136,8 +135,7 @@ rule metabat2:
             bowtie2-build --threads {threads} {input.scaftigs} {params.index_dir}/g_index 1> {log.index_log} 2>&1
         fi
 
-        bowtie2 -p {threads} -x {params.index_dir}/g_index -1 {input.r1} -2 {input.r2} 2> {log.map_log} | samtools sort -@ {threads} -o {output.bam} -
-        jgi_summarize_bam_contig_depths --outputDepth {output.depth} {output.bam}
+        bowtie2 -p {threads} -x {params.index_dir}/g_index -1 {input.r1} -2 {input.r2} 2> {log.map_log} | samtools sort -@ {threads} -O BAM - | jgi_summarize_bam_contig_depths --outputDepth {output.depth} -
         metabat2 -i {input.scaftigs} -a {output.depth} -o {params.bin_basename} -m {params.minContig} -t {threads} > {log.bin_log}
 
         for bin in `ls {output.bins_dir}/*.fa`;do
@@ -145,7 +143,7 @@ rule metabat2:
             seqkit replace -p .+ -r "${{id}}_contig_{{nr}}" --nr-width 6 $bin -o ${{bin}}.gz && rm ${{bin}}
         done
         cd {output.bins_dir} && gzip -d *.gz  ### checkm does't support .gz
-        rm -rf {params.index_dir}
+        #rm -rf {params.index_dir} # for multi_samples binning
         '''
 
 ### step4: MAG quality
@@ -200,10 +198,10 @@ rule MAGs_summary:
 
     output:
         megahit_stat = protected(os.path.join(config["results"]["assembly"], "contigs_stat.txt")),
-        bins_stat = protected(os.path.join(config["results"]["assembly"], "All_bins_stat.txt")),
-        MAGs_per_sample = protected(os.path.join(config["results"]["assembly"], "MAGs_per_sample.txt")),
-        MAGs_quality = protected(os.path.join(config["results"]["assembly"], "picked_MAGs_quality.txt")),
-        map2scaftigs = protected(os.path.join(config["results"]["assembly"], "map2scaftigs_summary.txt"))
+        bins_stat = protected(os.path.join(config["results"]["binning_s1"], "All_bins_stat.txt")),
+        MAGs_per_sample = protected(os.path.join(config["results"]["binning_s1"], "MAGs_per_sample.txt")),
+        MAGs_quality = protected(os.path.join(config["results"]["binning_s1"], "picked_MAGs_quality.txt")),
+        map2scaftigs = protected(os.path.join(config["results"]["binning_s1"], "map2scaftigs_summary.txt"))
     shell:
         '''
         cat {input.bins_stat} | awk -F'\t' 'NR==1 || $2!="GC"' > {output.bins_stat}
