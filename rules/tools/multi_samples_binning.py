@@ -9,7 +9,7 @@ import re
 import yaml
 
 if len(sys.argv) != 3:
-  print("Usage: python mulit_samples_metabat2.py sample.txt config.yaml")
+  print("Usage: python mulit_samples_metabat2.py sample.txt config.yaml > work_multi_binning.sh")
   exit()
 else:
   samplefile, configfile = sys.argv[1:]
@@ -47,7 +47,8 @@ def checkm(sample_id, checkm_run_dir,picked_dir, run_dir, logs_checkm_dir, check
     bin_stat = os.path.join(run_dir, sample_id+".bins.stat.txt")
     checkm_log = os.path.join(logs_checkm_dir, sample_id+"checkm.log")
     pick_log = os.path.join(picked_dir, sample_id+'.picked.summary.txt')
-    work_sh = "checkm lineage_wf -t %s -x fa %s %s 2> %s | grep -v INFO > %s/checkm_summary.txt\n" %(checkm_cpu, bins_dir, checkm_run_dir, checkm_log, checkm_run_dir)
+    work_sh = 'for bin in `ls %s/*.fa`;do id=`basename ${bin} .fa`;seqkit replace -p .+ -r "${id}_contig_{nr}" --nr-width 6 $bin -o ${bin}.gz && rm ${bin};done && gzip -d %s/*.gz\n' %(bins_dir, bins_dir)
+    work_sh += "checkm lineage_wf -t %s -x fa %s %s 2> %s | grep -v INFO > %s/checkm_summary.txt\n" %(checkm_cpu, bins_dir, checkm_run_dir, checkm_log, checkm_run_dir)
     work_sh += 'python rules/tools/bin_stat_format.py %s/storage/bin_stats.analyze.tsv > %s\n' %(checkm_run_dir, bin_stat)
     work_sh += 'python rules/tools/pick_MAGs.py --high %s --medium %s %s %s/checkm_summary.txt > %s && rm -r %s/bins %s/storage' %(high_quality, medium_quality, bins_dir, checkm_run_dir, pick_log, checkm_run_dir, checkm_run_dir)
     print(work_sh)

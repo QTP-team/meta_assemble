@@ -8,19 +8,19 @@ import argparse
 import sys
 import os
 
-parser = argparse.ArgumentParser( 
+parser = argparse.ArgumentParser(
     prog = "merge_bowtie2_log.py",
     description = "merge bowite2 logs (PE reads)",
     usage = "merge_bowite2_log.py *.bowti2.log > merge.bowtie2.log")
 
-parser.add_argument( 
-    "infiles", 
-    metavar = "input.txt", 
-    nargs = "+", 
+parser.add_argument(
+    "infiles",
+    metavar = "input.txt",
+    nargs = "+",
     help = "One or more bowtie2 log to join" )
 
 def merge(infile_lst):
-    print("sample\treads\tPE_mapping_ratio\tmapping_ratio")
+    print("Sample_ID\treads\tPE_mapping_ratio\tmapping_ratio")
     for f in infile_lst:
         sample_id = os.path.split(os.path.basename(f))[1].replace('.map2scaftigs.log','')
         with open(f) as f_i:
@@ -32,7 +32,7 @@ def merge(infile_lst):
             mapped = pe_mapped + float(item[12].strip().split(" ")[0]) #aligned exactly 1 time
             mapped += float(item[13].strip().split(" ")[0]) #aligned >1 times
             mapping_ratio = mapped / reads
-            pe_mapping_ratio = pe_mapped / reads 
+            pe_mapping_ratio = pe_mapped / reads
         print("%s\t%s\t%.4f\t%.4f" %(sample_id, int(reads), pe_mapping_ratio, mapping_ratio))
 
 def _main():

@@ -19,7 +19,7 @@ parser.add_argument(
     help = "One or more megahit log to join" )
 
 def merge(infile_lst):
-    print("sample_ID\tcontigs\ttotal\tmin\tmax\tavg\tN50")
+    print("Sample_ID\tcontigs\ttotal\tmin\tmax\tavg\tN50")
     for f in infile_lst:
         sample_id = os.path.split(os.path.basename(f))[1].replace('.megahit.log','')
         with open(f) as f_i:

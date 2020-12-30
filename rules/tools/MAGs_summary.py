@@ -16,11 +16,11 @@ def summary_report(infiles, all_MAGs_stat, MAGs_per_sample, MAGs_quality):
         MAG_stat_dict[MAG_id] = MAG_stat
 
     f_o1 = open(MAGs_per_sample, "w")
-    f_o1.write("sample_id\tHQ_MAGs_n\tMQ_MAGs_n\tLQ_MAGs_n\n")
+    f_o1.write("Sample_ID\tHQ_MAGs_n\tMQ_MAGs_n\tLQ_MAGs_n\n")
 
     f_o2 = open(MAGs_quality, "w")
     dset_title = '\t'.join(dset[0].strip().split("\t")[1:])
-    f_o2.write("sample_id\tbin_path\tquality\tcompleteness\tcontamination\tstrain_heterogeneity\t%s\n" %(dset_title))
+    f_o2.write("Sample_ID\tbin_path\tquality\tcompleteness\tcontamination\tstrain_heterogeneity\t%s\n" %(dset_title))
 
     for f in infiles:
         sample_id = f.split("/")[-1].split(".")[0]
