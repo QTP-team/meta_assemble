@@ -55,7 +55,7 @@ rule filter:
     run:
         shell(
         '''
-        fastp -i {input.r1} -I {input.r2} -o {output.trim_r1} -O {output.trim_r2} -w {threads} --length_required {params.min_len} --disable_adapter_trimming -j {output.json} -h {output.html} 2> {log.fastp_log}
+        fastp -i {input.r1} -I {input.r2} -o {output.trim_r1} -O {output.trim_r2} -w {threads} --length_required {params.min_len} -j {output.json} -h {output.html} 2> {log.fastp_log}
 
         bowtie2 --very-sensitive -p {threads} -x {params.index} -1 {output.trim_r1} -2 {output.trim_r2} 2> {log.bowtie2_log} | samtools fastq -N -c 5 -f 12 -F 256 -1 {output.rmhost_r1} -2 {output.rmhost_r2} -
         ''')

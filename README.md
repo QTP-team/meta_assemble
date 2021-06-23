@@ -1,5 +1,6 @@
 **注意：本工作尚未发表，仅限华大内部使用**
 
+## 1. Metagenome assembly
 大规模宏基因组样本的组装流程。整个流程包括：fastp和Bowtie 2过滤低质量的reads和宿主的reads，MEGAHIT组装，MetaBAT 2分箱，CheckM评估基因组质量。
 
 本流程使用单样本组装，多样本分箱的策略。单个样本组装可以避免多样本组装，组装出质量更高的基因组(图1)。而在分箱过程中给予更多的样本可以使metabat2更为准确:
@@ -25,7 +26,7 @@ If you used this pipeline please cite the following paper:
 
 
 
-## Install
+### 1.1 Install
 
 使用conda安装所有依赖：
 
@@ -41,9 +42,9 @@ If you used this pipeline please cite the following paper:
 export PATH="/ldfssz1/ST_META/share/User/tianliu/bioenv/conda/envs/meta_assemble_wdl/bin:$PATH"
 ```
 
-## Usage
+### 1.2 Usage
 
-### 0. 测试数据集
+#### 1.2.1. 测试数据集
 
 使用三个单菌的基因组生成模拟的测试集。
 
@@ -51,7 +52,7 @@ export PATH="/ldfssz1/ST_META/share/User/tianliu/bioenv/conda/envs/meta_assemble
 sh demo/work.iss.sh
 ```
 
-### 1. 样本
+#### 1.2.2. 样本
 
 样本输入格式见sample.txt，以制表符分割。仅支持双端测序样本。
 
@@ -63,7 +64,7 @@ test2	demo/test2_data_R1.fastq.gz	demo/test2_data_R2.fastq.gz
 test3	demo/test3_data_R1.fastq.gz	demo/test3_data_R2.fastq.gz
 ```
 
-### 2. 参数设置
+#### 1.2.3 参数设置
 
 软件运行参数和流程的文件结构都在```rules/assemble.config.yaml```。
 
@@ -100,7 +101,7 @@ params:
 ...
 ```
 
-### 3a. 本地运行
+#### 1.2.4a. 本地运行
 
 在运行前，先使用-n进行测试。
 
@@ -120,7 +121,7 @@ snakemake \
 --core 32 2> smk.log
 ```
 
-### 3b. 投递任务(qsub环境)
+#### 1.2.4b. 投递任务(qsub环境)
 
 投递任务相关参数在```rules/assemble.cluster.yaml```，可在该文件中指定每一步所需的资源。投任务前，需**修改项目编号，集群队列**。
 
@@ -186,6 +187,10 @@ MetaBAT 2得到的所有的Bins: 02.binning_s1/All_bins_stat.txt
 每个样本得到的MAGs: 02.binning_s1/MAGs_per_sample.txt
 
 多样本分箱统计结果文件命名同单样本分箱。
+
+## 2. Genome de-replication
+## 3. Genome annation
+## 4. Figure
 
 ## FAQ
 
