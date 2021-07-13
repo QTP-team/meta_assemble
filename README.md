@@ -18,9 +18,10 @@ In this pipeline, we offer a new strategy of binning we called co-abundance binn
 
 1) Compared with co-assembly strategy, single sample assembly can avoid the hybridization of strains in multiple samples, resulting in fragmentation of configs and high strain heterogenicity of genomes (Figure 1). And  it also can significantly reduce computatial memory.
 
-![图1](pic/fig1.png)
-<center>Figure 1 Mixing of strains will lead to poor assembly quality. </center>
-<center>Source: https://drep.readthedocs.io/en/latest/overview.html#genome-de-replication </center>
+<div align="center"><img src="https://drep.readthedocs.io/en/latest/_images/Figure0.jpg" /></div>
+<p align="center">Figure 1 Mixing of strains will lead to poor assembly quality.</div>
+<p align="center">Source: https://drep.readthedocs.io/en/latest/overview.html#genome-de-replication</p>
+
 
 2) Compared with the common strategy of single sample binning, our strategy can make full use of the abundance and correlation information of config in mulitiple samples. 
 
@@ -30,16 +31,13 @@ Compared with the s1 group, the total number of bins, QS50 MAGs, and High-qualit
 
 The QS50 MAGs in 7 groups were clustered into the species-level clusters by dRep separately. More species were obtained when more samples were used in binning. Compared with s1, the total SGBs of s20 increase to 60%, and the high-quality SGBs also increase to 83% (Fig S1c). The overlaps of representative species genomes were calculated by dRep in all 7 groups, and good consistency was observed in our strategy (Fig S1d). Compared with s1 group, 530 new SGBs ( 52.17% SGBs in s1) were obtained and 942 SGBs (92.72% SGBs in s1) in s1 were overlapped in s10 group. 
 
-![fig2](pic/Fig2.png)
-
-<center>Figure2 Evaluation results of our co-abundance strategy.</center>
-
+![Figure 2](pic/Fig2.png)
+<p align="center">Figure2 Evaluation results of our co-abundance strategy.</p>
 
 
 **If you use this pipeline, please cite the paper:**
 
 [TBD]
-
 
 
 ## 2. Install
@@ -107,9 +105,9 @@ params:
     checkm:
       threads: 8
     pick:
-    	# "completeness, contamination, strain_heterogeneity" from CheckM
-    	# Default : MIMAG standard.
-    	# <0 : no filter
+    # "completeness, contamination, strain_heterogeneity" from CheckM
+    # Default : MIMAG standard.
+    # <0 : no filter
       HQ: "90,5,-1"
       MQ: "50,10,-1"
 
