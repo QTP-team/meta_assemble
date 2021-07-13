@@ -1,0 +1,17 @@
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - bowtie2
+  - pigz
+  - yaml
+  - fastp
+  - numpy
+  - pandas
+  - samtools
+  - seqkit
+  - snakemake>=5.14
+  - megahit
+  - metabat2
+  - checkm-genome

@@ -1,83 +1,98 @@
-**注意：本工作尚未发表，仅限华大内部使用**
+[中文版](README_CH.md)
 
-## 1. Metagenome assembly
-大规模宏基因组样本的组装流程。整个流程包括：fastp和Bowtie 2过滤低质量的reads和宿主的reads，MEGAHIT组装，MetaBAT 2分箱，CheckM评估基因组质量。
+## 1. Introduction
 
-本流程使用单样本组装，多样本分箱的策略。单个样本组装可以避免多样本组装，组装出质量更高的基因组(图1)。而在分箱过程中给予更多的样本可以使metabat2更为准确:
+Design for large-scale metagenomic assembly of fecal samples, the pipeline includes 4 parts: 
 
->When the number of samples increases, abundance (ABD) becomes more reliable, so *w* effectively decreases the relative weight of tetra-nucleotide frequency (TNF) and increases the weight of ABD. Whenever there are three or more samples available, an ABD correlation score (COR) is also calculated using the Pearson correlation coefficient and then rank-normalized using ABD. In this case, a composite score (S) is calculated as the geometric mean of TNF, ABD, and COR.
+1) Filter out low-quality reads and host contamination by fastp and Bowtie2;
+
+2) Assembly metagenomics samples separately by MEGAHIT;
+
+3) Bin the contigs to Metagenomic assembly genomes (MAGs) by MetaBAT2;
+
+4) Evalue genomic quality with CheckM.
+
+
+
+In this pipeline, we offer a new strategy of binning we called co-abundance binning. Multiple samples are used to bin contigs from single sample to obtain MAGs. This strategy has the following advantages:
+
+1) Compared with co-assembly strategy, single sample assembly can avoid the hybridization of strains in multiple samples, resulting in fragmentation of configs and high strain heterogenicity of genomes (Figure 1). And  it also can significantly reduce computatial memory.
 
 ![图1](pic/fig1.png)
+<center>Figure 1 Mixing of strains will lead to poor assembly quality. </center>
+<center>Source: https://drep.readthedocs.io/en/latest/overview.html#genome-de-replication </center>
 
-<center>图1 菌株混杂会导致组装质量下降。</center>
-<center>来源: https://drep.readthedocs.io/en/latest/overview.html#genome-de-replication </center>
+2) Compared with the common strategy of single sample binning, our strategy can make full use of the abundance and correlation information of config in mulitiple samples. 
 
-我们分别使用了1，4，6，8，10个样本评估了样本数量对分箱结果的影响。4个样本即可大大增加中高质量的MAGs的数量，随着使用样本数的增加，得到的高中质量的MAG数量也一并增加(图2)。推荐使用10个样本进行多样本分箱。
+We used 79 horse metagenomes to evaluated our strategy. First, all samples were assembled separately. Then, we used 1, 4, 6, 8, 10, 15, and 20 samples (referred to as s1 – s20), a total of 7 groups, to test the influence of different number of samples used in co-abundance binning. 
+
+Compared with the s1 group, the total number of bins, QS50 MAGs, and High-quality MAGs increased to 89%, 115%, and 134% in the s20 group (Figure 2a). In almost all samples, the number of QS50 MAGs per sample increased with the number of samples used in binning(Figure 2b). 
+
+The QS50 MAGs in 7 groups were clustered into the species-level clusters by dRep separately. More species were obtained when more samples were used in binning. Compared with s1, the total SGBs of s20 increase to 60%, and the high-quality SGBs also increase to 83% (Fig S1c). The overlaps of representative species genomes were calculated by dRep in all 7 groups, and good consistency was observed in our strategy (Fig S1d). Compared with s1 group, 530 new SGBs ( 52.17% SGBs in s1) were obtained and 942 SGBs (92.72% SGBs in s1) in s1 were overlapped in s10 group. 
 
 ![fig2](pic/Fig2.png)
 
-<center>图2 更多的样本可以更好的改善分箱的质量</center>
-
-metaSPAdes(不包含在本流程中)相较于MEGAHIT组装效果更好，但会消耗大量的计算资源。若去完宿主后的reads测序量小于10G，可以考虑选择metaSPAdes进行组装。本流程不支持更改软件，若想换用其他软件进行组装，推荐使用[metapi](https://github.com/ohmeta/metapi)。
-
-若使用了本流程，请引用文献：
-
-If you used this pipeline please cite the following paper:
+<center>Figure2 Evaluation results of our co-abundance strategy.</center>
 
 
 
-### 1.1 Install
+**If you use this pipeline, please cite the paper:**
 
-使用conda安装所有依赖：
+[TBD]
 
+
+
+## 2. Install
+
+Install by conda：
 ```shell
-# TBD
-#conda env create -n meta_assembly -f rules/environment.yaml
+conda env create -n meta_assembly -f rules/environment.yaml
+conda active meta_assembly
 ```
 
-
-
-若在华大集群上，可使用已安装好的环境变量。
+Download the host's genome and build the Bowtie2 index
+```shell
+# GRCh38.p13 (human)
+# https://www.ncbi.nlm.nih.gov/assembly/GCF_000001405.39
+mkdir -p 0.data/host_index && cd 0.data/host_index
+curl -O https://ftp.cngb.org/pub/Assembly/GCA/000/001/405/GCA_000001405.28_GRCh38.p13/GCA_000001405.28_GRCh38.p13_genomic.fna.gz
+bowtie2-build --threads 4 GCA_000001405.28_GRCh38.p13_genomic.fna.gz hg38.p13
 ```
-export PATH="/ldfssz1/ST_META/share/User/tianliu/bioenv/conda/envs/meta_assemble_wdl/bin:$PATH"
-```
 
-### 1.2 Usage
+## 3. usage
 
-#### 1.2.1. 测试数据集
-
-使用三个单菌的基因组生成模拟的测试集。
-
+### 3.1 Demo data
+Three simulated metagenomes were generated using three bacteria genomes.
 ```shell
 sh demo/work.iss.sh
 ```
 
-#### 1.2.2. 样本
+### 3.2 Input
 
-样本输入格式见sample.txt，以制表符分割。仅支持双端测序样本。
+See sample.txt (separated by tabs) for the sample input format. Only PE reads are supported.
 
 ```shell
-$ cat sample.txt 
+$ cat sample.txt
 id	fq1	fq2
 test1	demo/test1_data_R1.fastq.gz	demo/test1_data_R2.fastq.gz
 test2	demo/test2_data_R1.fastq.gz	demo/test2_data_R2.fastq.gz
 test3	demo/test3_data_R1.fastq.gz	demo/test3_data_R2.fastq.gz
 ```
 
-#### 1.2.3 参数设置
+### 3.3 Parameters
 
-软件运行参数和流程的文件结构都在```rules/assemble.config.yaml```。
+Parameters and file's names can be set in ```rules/assemble.config.yaml```.
 
-默认宿主为人的hg38。若宿主为其他物种，需下载该物种的基因组建Bowtie 2的索引，并在config文件中替换。
+**Note**: Update the path for bowtie2_index to "/your_path/0.data/host_index/hg38.p13".
 
 ```yaml
 params:
     ### step1 assembly
     fastp:
-      min_len : 30 # Recommended value >= 30
+      min_len : 70 # Recommended value >= 30
     #rmhost
     rmhost:
-      bowtie2_index : "/ldfssz1/ST_META/share/User/tianliu/database/bowtie2_index/hg38/hg38"
+      bowtie2_index : "/path/to/host_bowtie2_index"
       threads: 8
     #megahit
     megahit:
@@ -85,7 +100,7 @@ params:
       min_contigs_len: 200
     #binning
     metabat2:
-      multi_samples: 2 # Recommended 10
+      multi_samples: 3 # Recommended 10
       threads: 16
       minContig: 1500 #should be >=1500
     #quality
@@ -93,26 +108,27 @@ params:
       threads: 8
     pick:
     	# "completeness, contamination, strain_heterogeneity" from CheckM
-    	# Default : MIMAG standard. 
+    	# Default : MIMAG standard.
     	# <0 : no filter
-      HQ: "90,5,-1" 
+      HQ: "90,5,-1"
       MQ: "50,10,-1"
-      
+
 ...
 ```
 
-#### 1.2.4a. 本地运行
+### 3.4a. Locally run
 
-在运行前，先使用-n进行测试。
+First, do dry-run to test.
 
 ```shell
 snakemake \
 --snakefile rules/assemble.smk \
 --configfile rules/assemble.config.yaml \
--n
+--core 1 \
+--dry-run
 ```
 
-若测试正常，则使用--core指定CPU资源在本地运行。
+Then use --core to specify the CPU resource to run locally.
 
 ```shell
 snakemake \
@@ -121,16 +137,16 @@ snakemake \
 --core 32 2> smk.log
 ```
 
-#### 1.2.4b. 投递任务(qsub环境)
+### 3.4b. Cluster execution (qsub)
 
-投递任务相关参数在```rules/assemble.cluster.yaml```，可在该文件中指定每一步所需的资源。投任务前，需**修改项目编号，集群队列**。
+The CPU and memory required for each step can be set in ```rules/cluster.yaml```，don't forget to update your project_ID and queue in this file.
 
 ```yaml
 localrules: all
 
 __default__:
   queue: "st.q"
-  project: "P19Z10200N0314"
+  project: "your_project_ID"
   workdir: "./"
   mem: "1G"
   cores: 1
@@ -144,15 +160,15 @@ filter:
 ...
 ```
 
-修改好上述文件后，使用下面的命令投递任务。
+Then, use the following command to post all tasks.
 
 ```shell
 if [ ! -d 1.assay/cluster_logs ];then mkdir -p 1.assay/cluster_logs;fi
 
 snakemake \
 --snakefile rules/assemble.smk \
---configfile rules/assemble.config.yaml \
---cluster-config rules/assemble.cluster.yaml \
+--configfile rules/config.yaml \
+--cluster-config rules/cluster.yaml \
 --jobs 80 \
 --keep-going \
 --rerun-incomplete \
@@ -160,45 +176,44 @@ snakemake \
 --cluster "qsub -S /bin/bash -cwd -q {cluster.queue} -P {cluster.project} -l vf={cluster.mem},p={cluster.cores} -binding linear:{cluster.cores} -o {cluster.output} -e {cluster.error}"
 ```
 
-### 4. 多样本分箱
+### 3.5. co-abundance binning
 
-运行完上述的snakemake流程，即可得到单装单bin的结果。
+The result of single sample binning can be obtained when you finish the snakemake process. Becaues of random sampling, the co-abundace binning scirpts are generated using ```mulit_samples_binning.py``` for reproducible research.
 
-当使用10个样本对样本X进行分箱时，将样本X的contigs结果，以及从所有样本中随机抽取的10个样本(包括X自己)作为metabat2的输入。由于存在随机抽样的过程，为了使计算可重复，使用mulit_samples_binning.py而非snakemake生成所有的计算脚本。
+You can change the number of samples used in co-abundance binning in ```rules/config.yaml```. More than 10 samples are recommended in the real research.
 
 ```shell
-python rules/tools/multi_samples_binning.py sample.txt rules/assemble.config.yaml > work_multi_binning.sh
+python rules/tools/multi_samples_binning.py sample.txt rules/config.yaml > work_multi_binning.sh
+
+sh work1_multi_metabat.sh && sh work2_multi_checkm.sh && sh work3_multi_summary.sh
 ```
 
-然后将work_multi_binning.sh拆分投上任务即可。
+### 4. Statistical results
 
-### 5. 统计结果
+01.assembly/filter_summary.txt
 
-过滤与去宿主的统计 : 01.assembly/filter_summary.txt
+01.assembly/contigs_stat.txt
 
-MEGAHIT组装统计: 01.assembly/contigs_stat.txt
+02.binning_s1/map2scaftigs_summary.txt
 
-Reads比对到contigs的回比率：02.binning_s1/map2scaftigs_summary.txt
+02.binning_s1/All_bins_stat.txt
 
-MetaBAT 2得到的所有的Bins: 02.binning_s1/All_bins_stat.txt
+02.binning_s1/picked_MAGs_quality.txt
 
-中高质量的MAGs : 02.binning_s1/picked_MAGs_quality.txt
+02.binning_s1/MAGs_per_sample.txt
 
-每个样本得到的MAGs: 02.binning_s1/MAGs_per_sample.txt
+The result files of co-abundance binning are named with the same name of single sample binning.
 
-多样本分箱统计结果文件命名同单样本分箱。
 
-## 2. Genome de-replication
-## 3. Genome annation
-## 4. Figure
+## 5. FAQ
 
-## FAQ
+### 1. Single-end sequencing？Want to change the software in the pipeline?
 
-### 1. WDL版本
+The design philosophy of this pipeline is "less is better". You can try [metapi](https://github.com/ohmeta/metapi).
 
-WDL版本源码见rules/WDL文件夹，可以在自动化平台(http://10.225.5.11:8080/Bioinfo/pages/automation/taskAdd.jsp)调用。
+### 2. Follow-up analysis pipeline?
+Clust MAGs to species: [dRep](https://github.com/MrOlm/drep)
 
-### 2. 无需过滤宿主基因组？是单端测序？想换流程中的软件？
+Taxonomic profile by unique alignment：TBD
 
-本流程不支持，请出门左转metapi。
-
+Taxonomic profile by Kraken: see "Customizable database for Kraken"

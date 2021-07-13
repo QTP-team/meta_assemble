@@ -1,7 +1,7 @@
 params:
     ### step1 assembly
     fastp:
-      min_len : 30 # Recommended value >= 30
+      min_len : 70 # Recommended value >= 30
     #rmhost
     rmhost:
       bowtie2_index : "/ldfssz1/ST_META/share/User/tianliu/database/bowtie2_index/hg38/hg38"
