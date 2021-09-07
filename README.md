@@ -181,7 +181,7 @@ The result of single sample binning can be obtained when you finish the snakemak
 You can change the number of samples used in co-abundance binning in ```rules/config.yaml```. More than 10 samples are recommended in the real research.
 
 ```shell
-python rules/tools/multi_samples_binning.py sample.txt rules/config.yaml > work_multi_binning.sh
+python rules/tools/multi_samples_binning.py sample.txt rules/config.yaml
 
 sh work1_multi_metabat.sh && sh work2_multi_checkm.sh && sh work3_multi_summary.sh
 ```
@@ -212,6 +212,6 @@ The design philosophy of this pipeline is "less is better". You can try [metapi]
 ### 2. Follow-up analysis pipeline?
 Clust MAGs to species: [dRep](https://github.com/MrOlm/drep)
 
-Taxonomic profile by unique alignment：TBD
+Taxonomic profile by unique alignment：https://github.com/QTP-team/meta_profile
 
 Taxonomic profile by Kraken: see "Customizable database for Kraken"
