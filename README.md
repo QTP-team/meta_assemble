@@ -2,7 +2,7 @@
 
 ## 1. Introduction
 
-Design for large-scale metagenomic assembly of fecal samples, the pipeline includes 4 parts: 
+Design for large-scale metagenomic assembly of fecal samples, the pipeline includes 4 parts:
 
 1) Filter out low-quality reads and host contamination by fastp and Bowtie2;
 
@@ -23,13 +23,13 @@ In this pipeline, we offer a new strategy of binning we called co-abundance binn
 <p align="center">Source: https://drep.readthedocs.io/en/latest/overview.html#genome-de-replication</p>
 
 
-2) Compared with the common strategy of single sample binning, our strategy can make full use of the abundance and correlation information of config in mulitiple samples. 
+2) Compared with the common strategy of single sample binning, our strategy can make full use of the abundance and correlation information of config in mulitiple samples.
 
-We used 79 horse metagenomes to evaluated our strategy. First, all samples were assembled separately. Then, we used 1, 4, 6, 8, 10, 15, and 20 samples (referred to as s1 – s20), a total of 7 groups, to test the influence of different number of samples used in co-abundance binning. 
+We used 79 horse metagenomes to evaluated our strategy. First, all samples were assembled separately. Then, we used 1, 4, 6, 8, 10, 15, and 20 samples (referred to as s1 – s20), a total of 7 groups, to test the influence of different number of samples used in co-abundance binning.
 
-Compared with the s1 group, the total number of bins, QS50 MAGs, and High-quality MAGs increased to 89%, 115%, and 134% in the s20 group (Figure 2a). In almost all samples, the number of QS50 MAGs per sample increased with the number of samples used in binning(Figure 2b). 
+Compared with the s1 group, the total number of bins, QS50 MAGs, and High-quality MAGs increased to 89%, 115%, and 134% in the s20 group (Figure 2a). In almost all samples, the number of QS50 MAGs per sample increased with the number of samples used in binning(Figure 2b).
 
-The QS50 MAGs in 7 groups were clustered into the species-level clusters by dRep separately. More species were obtained when more samples were used in binning. Compared with s1, the total SGBs of s20 increase to 60%, and the high-quality SGBs also increase to 83% (Fig S1c). The overlaps of representative species genomes were calculated by dRep in all 7 groups, and good consistency was observed in our strategy (Fig S1d). Compared with s1 group, 530 new SGBs ( 52.17% SGBs in s1) were obtained and 942 SGBs (92.72% SGBs in s1) in s1 were overlapped in s10 group. 
+The QS50 MAGs in 7 groups were clustered into the species-level clusters by dRep separately. More species were obtained when more samples were used in binning. Compared with s1, the total SGBs of s20 increase to 60%, and the high-quality SGBs also increase to 83% (Fig S1c). The overlaps of representative species genomes were calculated by dRep in all 7 groups, and good consistency was observed in our strategy (Fig S1d). Compared with s1 group, 530 new SGBs ( 52.17% SGBs in s1) were obtained and 942 SGBs (92.72% SGBs in s1) in s1 were overlapped in s10 group.
 
 ![Figure 2](pic/Fig2.png)
 <p align="center">Figure2 Evaluation results of our co-abundance strategy.</p>
@@ -44,8 +44,8 @@ The QS50 MAGs in 7 groups were clustered into the species-level clusters by dRep
 
 Install by conda：
 ```shell
-conda env create -n meta_assembly -f rules/environment.yaml
-conda active meta_assembly
+conda env create -n meta_assemble -f rules/environment.yaml
+conda active meta_assemble
 ```
 
 Download the host's genome and build the Bowtie2 index
@@ -181,7 +181,7 @@ The result of single sample binning can be obtained when you finish the snakemak
 You can change the number of samples used in co-abundance binning in ```rules/config.yaml```. More than 10 samples are recommended in the real research.
 
 ```shell
-python rules/tools/multi_samples_binning.py sample.txt rules/config.yaml > work_multi_binning.sh
+python rules/tools/multi_samples_binning.py sample.txt rules/config.yaml
 
 sh work1_multi_metabat.sh && sh work2_multi_checkm.sh && sh work3_multi_summary.sh
 ```
