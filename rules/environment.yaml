@@ -3,6 +3,7 @@ channels:
   - bioconda
   - defaults
 dependencies:
+  - insilicoseq
   - bowtie2
   - pigz
   - yaml
@@ -14,4 +15,4 @@ dependencies:
   - snakemake>=5.14
   - megahit
   - metabat2
-  - checkm-genome
+  - checkm-genome>=1.1.3

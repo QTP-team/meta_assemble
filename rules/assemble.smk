@@ -152,13 +152,11 @@ rule checkm:
         os.path.join(config["assay"]["metabat2"], "{sample}/{sample}_binning")
     output:
         bin_stat = protected(os.path.join(config["assay"]["metabat2"], "{sample}/{sample}.bins.stat.txt")),
-        picked = protected(os.path.join(config["assay"]["picked"], "{sample}.picked.summary.txt"))
+        filtered = protected(os.path.join(config["assay"]["picked"], "{sample}.filtered.MAGs.txt"))
     log:
         os.path.join(config["logs"]["checkm"], "{sample}.checkm.log")
     params:
-        checkm_dir = directory(os.path.join(config["assay"]["checkm"], "{sample}")),
-        high = config["params"]["pick"]["HQ"],
-        medium = config["params"]["pick"]["MQ"]
+        checkm_dir = directory(os.path.join(config["assay"]["checkm"], "{sample}"))
     threads:
         config["params"]["checkm"]["threads"]
     shell:
@@ -166,7 +164,8 @@ rule checkm:
         mkdir -p {params.checkm_dir}
         checkm lineage_wf -t {threads} -x fa {input} {params.checkm_dir} 2> {log} | grep -v "INFO" > {params.checkm_dir}/checkm_summary.txt
         python rules/tools/bin_stat_format.py {params.checkm_dir}/storage/bin_stats.analyze.tsv > {output.bin_stat}
-        python rules/tools/pick_MAGs.py --high {params.high} --medium {params.medium} {input} {params.checkm_dir}/checkm_summary.txt > {output.picked}
+        #python rules/tools/pick_MAGs.py --high {params.high} --medium {params.medium} {input} {params.checkm_dir}/checkm_summary.txt > {output.picked}
+        python rules/tools/filter_MAGs.py --min_comp 50 --min_cont 10 --min_qs 50 {input} {params.checkm_dir}/checkm_summary.txt {output.bin_stat} > {output.filtered}
         rm -r {params.checkm_dir}/bins {params.checkm_dir}/storage
         '''
 
