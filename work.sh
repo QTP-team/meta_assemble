@@ -9,13 +9,13 @@
 ### step0 dry-run
 snakemake \
 --snakefile rules/assemble.smk \
---configfile rules/assemble.config.yaml \
+--configfile rules/config.yaml \
 -n
 
 ### step1.a run at test node
 snakemake \
 --snakefile rules/assemble.smk \
---configfile rules/assemble.config.yaml \
+--configfile rules/config.yaml \
 --core 32 2> smk.log
 
 ### step1.b qsub to clusters
@@ -24,8 +24,8 @@ if [ ! -d 1.assay/cluster_logs ];then mkdir -p 1.assay/cluster_logs;fi
 
 snakemake \
 --snakefile rules/assemble.smk \
---configfile rules/assemble.config.yaml \
---cluster-config rules/assemble.cluster.yaml \
+--configfile rules/config.yaml \
+--cluster-config rules/cluster.yaml \
 --jobs 80 \
 --keep-going \
 --rerun-incomplete \
@@ -35,8 +35,8 @@ snakemake \
 ### When the project is finished, compress and archive the results.
 snakemake \
 --snakefile rules/tar.smk \
---configfile rules/assemble.config.yaml \
---cluster-config rules/assemble.cluster.yaml \
+--configfile rules/config.yaml \
+--cluster-config rules/cluster.yaml \
 --jobs 80 \
 --keep-going \
 --rerun-incomplete \
