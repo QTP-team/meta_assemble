@@ -121,7 +121,7 @@ First, do dry-run to test.
 ```shell
 snakemake \
 --snakefile rules/assemble.smk \
---configfile rules/assemble.config.yaml \
+--configfile rules/config.yaml \
 --core 1 \
 --dry-run
 ```
@@ -131,7 +131,7 @@ Then use --core to specify the CPU resource to run locally.
 ```shell
 snakemake \
 --snakefile rules/assemble.smk \
---configfile rules/assemble.config.yaml \
+--configfile rules/config.yaml \
 --core 32 2> smk.log
 ```
 
