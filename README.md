@@ -79,7 +79,7 @@ test3	demo/test3_data_R1.fastq.gz	demo/test3_data_R2.fastq.gz
 
 ### 3.3 Parameters
 
-Parameters and file's names can be set in ```rules/assemble.config.yaml```.
+Parameters and file's names can be set in ```rules/config.yaml```.
 
 **Note**: Update the path for bowtie2_index to "/your_path/0.data/host_index/hg38.p13".
 
