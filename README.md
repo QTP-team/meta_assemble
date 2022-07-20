@@ -214,4 +214,9 @@ Clust MAGs to species: [dRep](https://github.com/MrOlm/drep)
 
 Taxonomic profile by unique alignment：https://github.com/QTP-team/meta_profile
 
-Taxonomic profile by Kraken: see "Customizable database for Kraken"
+Taxonomic profile by Kraken: https://github.com/QTP-team/build_kraken_index, https://github.com/DerrickWood/kraken2
+
+
+## 6. Preprint
+
+A Unified Catalog of 19,251 Non-human Reference Species Genomes Provides New Insights into the Mammalian Gut Microbiomes.https://www.biorxiv.org/content/10.1101/2022.05.16.491731v1
