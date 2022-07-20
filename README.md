@@ -219,4 +219,4 @@ Taxonomic profile by Kraken: https://github.com/QTP-team/build_kraken_index, htt
 
 ## 6. Preprint
 
-A Unified Catalog of 19,251 Non-human Reference Species Genomes Provides New Insights into the Mammalian Gut Microbiomes.https://www.biorxiv.org/content/10.1101/2022.05.16.491731v1
+A Unified Catalog of 19,251 Non-human Reference Species Genomes Provides New Insights into the Mammalian Gut Microbiomes. https://www.biorxiv.org/content/10.1101/2022.05.16.491731v1
